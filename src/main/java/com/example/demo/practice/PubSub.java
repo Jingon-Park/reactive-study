@@ -1,6 +1,7 @@
 package com.example.demo.practice;
 
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,41 +17,80 @@ public class PubSub {
     public static void main(String[] args) {
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10).collect(Collectors.toList()));
         Publisher<Integer> mapPub = mapPub(pub, a -> a*10);
+        //Publisher<Integer> sumPub = sumPub(pub);
+        //Publisher<Integer> reducePub = reducePub(pub, 0, (a, b) -> a + b);
         Subscriber<Integer> logSub = logSub();
         mapPub.subscribe(logSub);
     }
-    private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> f){
-        return new Publisher<Integer>(){
+
+
+
+    // public static Publisher<Integer> reducePub(Publisher<Integer> pub, int init, BiFunction<Integer, Integer, Integer> bf){
+
+    //     return new Publisher<Integer>() {
+    //         @Override
+    //         public void subscribe(Subscriber<? super Integer> sub){
+    //             pub.subscribe(new DelegeateSub(sub){
+    //                 int result = init;
+
+    //                 @Override
+    //                 public void onNext(Integer i){
+    //                     result = bf.apply(result, i);
+    //                 }
+
+    //                 @Override
+    //                 public void onComplete(){
+    //                     sub.onNext(result);
+    //                     sub.onComplete();
+    //                 }
+    //             });
+    //         }
+    //     };
+
+    // }
+    // private static Publisher<Integer> sumPub(Publisher<Integer> pub){
+    //     return new Publisher<Integer>() {
+
+    //         @Override
+    //         public void subscribe(Subscriber<? super Integer> s) {
+    //             // TODO Auto-generated method stub
+    //             pub.subscribe(new DelegeateSub(s){
+    //                 int sum = 0;
+    //                 @Override
+    //                 public void onNext(Integer i){
+    //                     sum += i;
+    //                 }
+
+    //                 @Override
+    //                 public void onComplete(){
+    //                     s.onNext(sum);
+    //                     s.onComplete();
+    //                 }
+    //             });
+                
+    //         }
+            
+    //     };
+    // }
+
+    //T -> R로 변환하는 Publisher
+    private static <T, R> Publisher<R> mapPub(Publisher<T> pub, Function<T, R> f){
+        return new Publisher<R>(){
             @Override
-            public void subscribe(Subscriber<? super Integer> sub) {
-                pub.subscribe(new Subscriber<Integer>() {
+            public void subscribe(Subscriber<? super R> sub) {
+                pub.subscribe(new DelegeateSub<T, R>(sub){
                     @Override
-                    public void onSubscribe(Subscription s) {
-                        sub.onSubscribe(s);
-                    }
-
-                    @Override
-                    public void onNext(Integer integer) {
-                        sub.onNext(f.apply(integer));
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        sub.onError(throwable);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        sub.onComplete();
+                    public void onNext(T i){
+                        sub.onNext(f.apply(i));
                     }
                 });
-
             }
         };
     }
+        
 
-    private static Subscriber<Integer> logSub() {
-        return new Subscriber<Integer>() {
+    private static <T> Subscriber<T> logSub() {
+        return new Subscriber<T>() {
             @Override
             public void onSubscribe(Subscription subscription) {
                 logger.debug("onSubscribe");
@@ -58,7 +98,7 @@ public class PubSub {
             }
 
             @Override
-            public void onNext(Integer integer) {
+            public void onNext(T integer) {
                 logger.debug("on Next :{}", integer);
 
             }

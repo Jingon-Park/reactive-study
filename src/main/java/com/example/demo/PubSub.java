@@ -1,4 +1,4 @@
-package com.example.demo.practice;
+package com.example.demo;
 
 import java.util.List;
 import java.util.function.BiFunction;

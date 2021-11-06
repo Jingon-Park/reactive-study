@@ -5,16 +5,18 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 @SpringBootApplication
-public class Demo1Application {
-
-
-    @RestController
+public class DemoApplication {
+	
+	@RestController
     public static class Controller{
 
         @RequestMapping("/hello")
         public Publisher<String> hello(String name){
+			System.out.println("test");
             return new Publisher<String>(){
                 @Override
                 public void subscribe(Subscriber<? super String> sub){
@@ -35,9 +37,8 @@ public class Demo1Application {
         }
 
     }
-
-    public static void main(String[] args) {
-        SpringApplication.run(Demo1Application.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(DemoApplication.class, args);
+	}
 
 }

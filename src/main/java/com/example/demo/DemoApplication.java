@@ -1,5 +1,6 @@
 package com.example.demo;
 
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -7,35 +8,36 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SpringBootApplication
 public class DemoApplication {
 	
+    private static final Logger logger = LoggerFactory.getLogger(String.class);
+
 	@RestController
     public static class Controller{
 
         @RequestMapping("/hello")
         public Publisher<String> hello(String name){
-			System.out.println("test");
             return new Publisher<String>(){
-                @Override
                 public void subscribe(Subscriber<? super String> sub){
+                    System.out.println("subscribe");
                     sub.onSubscribe(new Subscription() {
-                        @Override
+                        
                         public void request(long n){
-                            sub.onNext("hello " + name);
+                            sub.onNext(name);
                             sub.onComplete();
                         }
-
-                        @Override
                         public void cancel(){
-                            
+
                         }
-                    }); 
+                    });
                 }
             };
-        }
 
+        }
     }
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);

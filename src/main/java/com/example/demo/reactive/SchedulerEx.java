@@ -1,5 +1,6 @@
 package com.example.demo.reactive;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -9,6 +10,7 @@ import org.reactivestreams.Subscription;
 
 import ch.qos.logback.core.util.ExecutorServiceUtil;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 public class SchedulerEx {
@@ -21,6 +23,11 @@ public class SchedulerEx {
     */
 
     public static void main(String[] args) {
+        ArrayList<String> data = new ArrayList<>();
+        data.add("test");
+        Mono<String> test = Mono.just("test")
+                .single();
+        test.subscribe(System.out::println);
         Publisher<Integer> pub = sub -> {
             sub.onSubscribe(new Subscription() {
 
@@ -111,7 +118,7 @@ public class SchedulerEx {
             }
             
         };
-        pubOnSeb.subscribe(sub);
+        //pubOnSeb.subscribe(sub);
         log.debug("exit");
     }
 }

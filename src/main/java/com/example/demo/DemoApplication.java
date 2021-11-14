@@ -32,9 +32,14 @@ public class DemoApplication {
     public static class MyService {
         @Async
         public ListenableFuture<String> hello() throws InterruptedException {
-            log.debug("hello()");
-            Thread.sleep(2000);
-            log.debug("end");
+            log.info("hello()");
+            try{
+                Thread.sleep(2000);
+            }catch(InterruptedException e){
+                e.printStackTrace();
+            }
+            
+            log.info("end");
             return new AsyncResult<>( "Hello");
         }
     }
@@ -63,76 +68,5 @@ public class DemoApplication {
             log.info("exit");
         };
     }
-
-
-//    private static final Logger logger = LoggerFactory.getLogger(String.class);
-//
-//    @RestController
-//    public static class Controller {
-//
-//        @RequestMapping("/hello")
-//        public Publisher<String> hello(String name) {
-//            return new Publisher<String>() {
-//                public void subscribe(Subscriber<? super String> sub) {
-//                    System.out.println("subscribe");
-//                    sub.onSubscribe(new Subscription() {
-//
-//                        public void request(long n) {
-//                            sub.onNext(name);
-//                            sub.onComplete();
-//                        }
-//
-//                        public void cancel() {
-//
-//                        }
-//                    });
-//                }
-//            };
-//
-//        }
-//
-//    }
-//    @Component
-//    public static class MyService {
-//
-//        @Async("tp")//실전에서 Thread 풀을 컨트롤하는 @Bean등록없이 @Async를 사용하면 안된다. 계속 스레드 생성함
-//        public ListenableFuture<String> hello() throws InterruptedException {
-//            logger.debug("hello()");
-//            Thread.sleep(2000);
-//            return new AsyncResult<>("Hello");
-//        }
-//    }
-//
-//    @Bean
-//    ThreadPoolTaskExecutor tp() {
-//        ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();
-//        te.setCorePoolSize(10);
-//        te.setMaxPoolSize(200);
-//        te.setQueueCapacity(100);
-//        te.setThreadNamePrefix("My-Thread-");
-//        te.initialize();
-//        return te;
-//    }
-//
-//    public static void main(String[] args) {
-//        try (ConfigurableApplicationContext c = SpringApplication.run(DemoApplication.class,
-//            args)) {
-//
-//        }
-//
-//    }
-//
-//    @Autowired MyService myService;
-//
-//    @Bean
-//    ApplicationRunner run() {
-//        return args -> {
-//            logger.info("run()");
-//            ListenableFuture<String> f = myService.hello();
-//            f.addCallback(s -> System.out.println(s), e -> System.out.println(e.getMessage()));
-//
-//            logger.info("exit");
-//        };
-//    }
 
 }

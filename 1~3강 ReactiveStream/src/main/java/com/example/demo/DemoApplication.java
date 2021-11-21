@@ -1,12 +1,6 @@
 package com.example.demo;
-
-
-
-
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.Callable;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -25,25 +19,19 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-
 @SpringBootApplication
 @EnableAsync
 @Slf4j
 public class DemoApplication {
-
     @RestController
     public static class MyController{
-
-        @GetMapping("/callable")
-        public Callable<String> callable() throws InterruptedException{
+        @GetMapping("/async")
+        public Callable<String> async() throws InterruptedException{
             log.info("callable");
-
-            return () -> {
+            return ()->{
                 log.info("async");
                 Thread.sleep(2000);
-
-                return "hello";
+                return "Hello";
             };
         }
     }
@@ -57,7 +45,7 @@ public class DemoApplication {
     //         }catch(InterruptedException e){
     //             e.printStackTrace();
     //         }
-            
+         
     //         log.info("end");
     //         return new AsyncResult<>( "Hello");
     //     }
@@ -72,16 +60,14 @@ public class DemoApplication {
     //     te.initialize();
     //     return te;
     // }
-
     public static void main(String[] args) {
         // try (ConfigurableApplicationContext c = SpringApplication.run(DemoApplication.class, args)) {
         // }
         SpringApplication.run(DemoApplication.class, args);
     }
-
     // @Autowired
     // MyService myService;
-    
+ 
     // @Bean
     // ApplicationRunner run() {
     //     return args -> {
@@ -91,5 +77,5 @@ public class DemoApplication {
     //         log.info("exit");
     //     };
     // }
-
+ 
 }

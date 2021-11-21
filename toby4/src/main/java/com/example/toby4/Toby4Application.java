@@ -1,11 +1,16 @@
 package com.example.toby4;
 
+import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.naming.spi.DirStateFactory.Result;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,6 +66,8 @@ public class Toby4Application {
 	@RestController
 	public static class MyController{
 
+        Queue<DeferredResult<String>> results = new ConcurrentLinkedQueue<>();
+        
 		@GetMapping("callable")
 		public Callable<String> callable() {
 			log.info("callable");
@@ -72,6 +79,30 @@ public class Toby4Application {
 				return "Hello";
 			};
 		}
+
+        @GetMapping("/dr")
+        public DeferredResult<String> callableDr(){
+            log.info("/dr");
+            DeferredResult<String> dr = new DeferredResult<>();
+            results.add(dr);
+            return dr;
+        }
+
+        @GetMapping("/dr/count")
+        public String count(){
+            return String.valueOf(results.size());
+        }
+
+        @GetMapping("dr/event")
+        public String drevent(String msg){
+            for(DeferredResult<String> dr : results){
+                dr.setResult("Result : " + msg);
+                results.remove(dr);
+            }
+
+            return "OK";
+
+        }
 
         // @GetMapping("callable")
 		// public String callable() throws InterruptedException {

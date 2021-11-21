@@ -3,14 +3,18 @@ package com.example.toby4;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.naming.spi.DirStateFactory.Result;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,6 +106,23 @@ public class Toby4Application {
 
             return "OK";
 
+        }
+
+        @GetMapping("/emitter")
+        public ResponseBodyEmitter emitter(){
+            ResponseBodyEmitter emitter = new ResponseBodyEmitter();
+
+            Executors.newSingleThreadExecutor().submit(() -> {
+                try {
+                    for(int i = 0 ; i < 50; i++){
+                        emitter.send("<p>Stream " + i +"</p>");
+                        Thread.sleep(100);
+                    }
+                } catch (Exception e) {
+                    //TODO: handle exception
+                }
+            });
+            return emitter;
         }
 
         // @GetMapping("callable")

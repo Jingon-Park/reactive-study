@@ -23,59 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableAsync
 @Slf4j
 public class DemoApplication {
-    @RestController
-    public static class MyController{
-        @GetMapping("/async")
-        public Callable<String> async() throws InterruptedException{
-            log.info("callable");
-            return ()->{
-                log.info("async");
-                Thread.sleep(2000);
-                return "Hello";
-            };
-        }
-    }
-    // @Component
-    // public static class MyService {
-    //     @Async
-    //     public ListenableFuture<String> hello() throws InterruptedException {
-    //         log.info("hello()");
-    //         try{
-    //             Thread.sleep(2000);
-    //         }catch(InterruptedException e){
-    //             e.printStackTrace();
-    //         }
-         
-    //         log.info("end");
-    //         return new AsyncResult<>( "Hello");
-    //     }
-    // }
-    // @Bean // @Async 대신 사용할 수 있는 방법
-    // ThreadPoolTaskExecutor tp() {
-    //     ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();
-    //     te.setCorePoolSize(10);
-    //     te.setMaxPoolSize(100);
-    //     te.setQueueCapacity(200);
-    //     te.setThreadNamePrefix("mythread");
-    //     te.initialize();
-    //     return te;
-    // }
+
     public static void main(String[] args) {
-        // try (ConfigurableApplicationContext c = SpringApplication.run(DemoApplication.class, args)) {
-        // }
+
         SpringApplication.run(DemoApplication.class, args);
     }
-    // @Autowired
-    // MyService myService;
- 
-    // @Bean
-    // ApplicationRunner run() {
-    //     return args -> {
-    //         log.info("run()");
-    //         ListenableFuture<String> f = myService.hello();
-    //         f.addCallback(s-> System.out.println(s), e-> System.out.println("test: " + e.getMessage()));
-    //         log.info("exit");
-    //     };
-    // }
+
  
 }

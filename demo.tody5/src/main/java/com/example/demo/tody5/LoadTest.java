@@ -3,6 +3,7 @@ package com.example.demo.tody5;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
+
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -21,8 +22,6 @@ public class LoadTest {
         main.start();
         for (int i=0; i<100; i++){
             es.submit(()->{
-
-                
                 log.info("submit start!!");
                 int idx = counter.addAndGet(1);
                 barrier.await();

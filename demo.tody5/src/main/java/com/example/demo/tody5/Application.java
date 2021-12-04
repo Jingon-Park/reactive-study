@@ -12,6 +12,7 @@ import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.async.DeferredResult;
 
 @SpringBootApplication
 @Slf4j
@@ -48,9 +49,17 @@ public class Application {
 		AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1)));
 
 		@GetMapping("/rest")
-		public ListenableFuture<ResponseEntity<String>> rest(int idx) {
-			return rt.getForEntity("http://localhost:8081/service?req={req}",
+		public DeferredResult<String> rest(int idx) {
+			DeferredResult<String> df = new DeferredResult<>();
+            ListenableFuture<ResponseEntity<String>> f1 = rt.getForEntity("http://localhost:8081/service?req={req}",
 					String.class, "hello" + idx);
+			f1.addCallback(s->{
+				df.setResult(s.getBody() + "/process");
+			}, e->{
+				df.setErrorResult(e.getMessage());
+			});
+
+			return df;
 		}
 	}
 

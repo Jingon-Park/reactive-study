@@ -1,22 +1,29 @@
 package com.example.demo.tody5;
 
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
+
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.async.DeferredResult;
 
 @SpringBootApplication
 @Slf4j
-
+@EnableAsync
 public class Application {
 
 
@@ -44,24 +51,57 @@ public class Application {
 //	}
 
 	@RestController
-	public static class MainController {
-		// asynchronous
-		AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1)));
+	public class MyController {
+		//RestTemplate rt = new RestTemplate(); // 블로킹 방식  => 각각 2초 작업시간이 걸리는 100개의 API 호출 시에 하나의 쓰레드로 처리하기 때문에 약 200초 걸림
+		//AsyncRestTemplate rt = new AsyncRestTemplate(); // 논블로킹 방식 => 각각 2초 작업시간이 걸리는 100개의 API 호출 시에 100개의 쓰레드로 처리하기 때문에 약 2초 걸림
+		AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1))); // 논블로킹 방식 => 각각 2초 작업시간이 걸리는 1
+
+
+		@Autowired
+		MyService myService;
 
 		@GetMapping("/rest")
-		public DeferredResult<String> rest(int idx) {
-			DeferredResult<String> df = new DeferredResult<>();
-            ListenableFuture<ResponseEntity<String>> f1 = rt.getForEntity("http://localhost:8081/service?req={req}",
-					String.class, "hello" + idx);
-			f1.addCallback(s->{
-				df.setResult(s.getBody() + "/process");
-			}, e->{
-				df.setErrorResult(e.getMessage());
+		public DeferredResult<String> rest(int idx) {   // 결과를 가공하여 리턴 또는 다른 API와 의존적인 관계로 만드는 법
+			DeferredResult<String> dr = new DeferredResult<>();
+			ListenableFuture<ResponseEntity<String>> f1 = rt.getForEntity("http://localhost:8081/service1?req={req}", String.class, "hello" + idx);
+			f1.addCallback(s1->{
+				ListenableFuture<ResponseEntity<String>> f2 = rt.getForEntity("http://localhost:8081/service2?req={req}", String.class, s1.getBody());
+				f2.addCallback(s2->{
+					//dr.setResult(s2.getBody());
+					ListenableFuture<String> f3 =  myService.work(s2.getBody());
+					f3.addCallback(s3->{
+						dr.setErrorResult(s3);
+					},e3->{
+						dr.setErrorResult(e3.getMessage());
+					});
+				},e2->{
+					dr.setErrorResult(e2.getMessage());
+				});
+			}, e1->{
+				dr.setErrorResult(e1.getMessage());
 			});
-
-			return df;
+			return dr;
 		}
 	}
+
+
+	@Service
+	public static class MyService {
+		@Async
+		public ListenableFuture<String> work(String req) {
+			return new AsyncResult<>(req + "/asyncwork");
+		}
+	}
+
+	@Bean
+	ThreadPoolTaskExecutor myThreadPool() {  //
+		ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();
+		te.setCorePoolSize(1);
+		te.setMaxPoolSize(1);
+		te.initialize();
+		return te;
+	}
+
 
 
 	

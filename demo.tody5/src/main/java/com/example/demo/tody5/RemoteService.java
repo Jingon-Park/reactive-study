@@ -11,16 +11,25 @@ public class RemoteService {
 
     @RestController
     public static class RemoteController {
-        @GetMapping("/service")
-        public String service(String req) throws InterruptedException {
+        @GetMapping("/service1")
+        public String service1(String req) throws InterruptedException {
 
             log.info("called");
             System.out.println(System.getProperty("server.tomcat.max-threads"));
 
             Thread.sleep(2000);
-            return req + "/service";
+            return req + "/service1";
+        }
+
+
+
+        @GetMapping("/service2")
+        public String service2(String req) throws InterruptedException {
+            Thread.sleep(2000);
+            return req + "/service2";  // html/text
         }
     }
+
 
     public static void main(String[] args) {
         // 하나의 프로젝트에서 2개의 스프링 애플리케이션을 띄우기 위해 외부 서비스 역할을 하는 RemoteApplication은

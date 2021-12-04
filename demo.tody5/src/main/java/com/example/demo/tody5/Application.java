@@ -1,8 +1,10 @@
 package com.example.demo.tody5;
 
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +45,7 @@ public class Application {
 	@RestController
 	public static class MainController {
 		// asynchronous
-		AsyncRestTemplate rt = new AsyncRestTemplate();
+		AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1)));
 
 		@GetMapping("/rest")
 		public ListenableFuture<ResponseEntity<String>> rest(int idx) {

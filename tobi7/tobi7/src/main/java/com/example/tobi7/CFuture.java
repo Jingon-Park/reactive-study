@@ -3,10 +3,7 @@ package com.example.tobi7;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Future는 비동기 작업의 결과를 담고있는 객체
@@ -16,22 +13,25 @@ import java.util.concurrent.TimeUnit;
 public class CFuture {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
+        ExecutorService es = Executors.newFixedThreadPool(10);
+
         CompletableFuture
                 .supplyAsync(() -> {
                     log.info("runAsync");
                     return 1;
-                })
-                .thenApply(s -> {
+                }, es)
+                .thenCompose(s -> {
                     log.info("then apply {}", s);
-                    return s + 1;
+                    return CompletableFuture.completedFuture(s + 1);
                 })
-                .thenApply(s2 -> {
+                .thenApplyAsync(s2 -> {
                     log.info("then apply {}", s2);
                     return s2 * 3;
-                })
-                .thenAccept(s3 -> {
+                }, es)
+                .exceptionally(e -> -10)
+                .thenAcceptAsync(s3 -> {
                     log.info("then accecpt {}", s3);
-                });
+                }, es);
 
         log.info("exit");
 

@@ -21,6 +21,10 @@ import org.springframework.web.client.AsyncRestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.annotation.processing.Completion;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 @SpringBootApplication
 @Slf4j
 @EnableAsync
@@ -55,7 +59,8 @@ public class Application {
 		//RestTemplate rt = new RestTemplate(); // 블로킹 방식  => 각각 2초 작업시간이 걸리는 100개의 API 호출 시에 하나의 쓰레드로 처리하기 때문에 약 200초 걸림
 		//AsyncRestTemplate rt = new AsyncRestTemplate(); // 논블로킹 방식 => 각각 2초 작업시간이 걸리는 100개의 API 호출 시에 100개의 쓰레드로 처리하기 때문에 약 2초 걸림
 		AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1))); // 논블로킹 방식 => 각각 2초 작업시간이 걸리는 1
-
+		static final String URL1 = "http://localhost:8081/service?req={req}";;
+		static final String URL2 = "http://localhost:8081/service2?req={req}";;
 
 		@Autowired
 		MyService myService;
@@ -63,24 +68,99 @@ public class Application {
 		@GetMapping("/rest")
 		public DeferredResult<String> rest(int idx) {   // 결과를 가공하여 리턴 또는 다른 API와 의존적인 관계로 만드는 법
 			DeferredResult<String> dr = new DeferredResult<>();
-			ListenableFuture<ResponseEntity<String>> f1 = rt.getForEntity("http://localhost:8081/service1?req={req}", String.class, "hello" + idx);
-			f1.addCallback(s1->{
-				ListenableFuture<ResponseEntity<String>> f2 = rt.getForEntity("http://localhost:8081/service2?req={req}", String.class, s1.getBody());
-				f2.addCallback(s2->{
-					//dr.setResult(s2.getBody());
-					ListenableFuture<String> f3 =  myService.work(s2.getBody());
-					f3.addCallback(s3->{
-						dr.setErrorResult(s3);
-					},e3->{
-						dr.setErrorResult(e3.getMessage());
-					});
-				},e2->{
-					dr.setErrorResult(e2.getMessage());
-				});
-			}, e1->{
-				dr.setErrorResult(e1.getMessage());
-			});
+//			ListenableFuture<ResponseEntity<String>> f1 = rt.getForEntity("http://localhost:8081/service1?req={req}", String.class, "hello" + idx);
+//			f1.addCallback(s1->{
+//				ListenableFuture<ResponseEntity<String>> f2 = rt.getForEntity("http://localhost:8081/service2?req={req}", String.class, s1.getBody());
+//				f2.addCallback(s2->{
+//					//dr.setResult(s2.getBody());
+//					ListenableFuture<String> f3 =  myService.work(s2.getBody());
+//					f3.addCallback(s3->{
+//						dr.setErrorResult(s3);
+//					},e3->{
+//						dr.setErrorResult(e3.getMessage());
+//					});
+//				},e2->{
+//					dr.setErrorResult(e2.getMessage());
+//				});
+//			}, e1->{
+//				dr.setErrorResult(e1.getMessage());
+//			});
+//			return dr;
+			Completion
+					.from(rt.getForEntity(URL1, String.class, "h" + idx))
+					.andApply(s->rt.getForEntity(URL2, String.class, s.getBody()))
+					.andApply(s->myService.work(s.getBody()))
+					.andError(e->dr.setErrorResult("Error [" + e.toString() + "]"))
+					.andAccept(s->dr.setResult(s));
 			return dr;
+
+
+		}
+	}
+
+	public static class AcceptCompletion<S> extends Completion<S,Void> {
+		Consumer<S> con;
+		public AcceptCompletion(Consumer<S> con) {
+			this.con = con;
+		}
+		@Override
+		void run(S value) {
+			con.accept(value);
+		}
+	}
+	public static class ErrorCompletion<T> extends Completion<T,T> {
+		Consumer<Throwable> econ;
+		public ErrorCompletion(Consumer<Throwable> econ) {
+			this.econ = econ;
+		}
+		@Override
+		void run(T value) {
+			if (next != null) next.run(value);
+		}
+	}
+	public static class ApplyCompletion<S,T> extends Completion<S,T> {
+		Function<S, ListenableFuture<T>> fn;
+		public ApplyCompletion(Function<S, ListenableFuture<T>> fn) {
+			this.fn = fn;
+		}
+		@Override
+		void run(S value) {
+			ListenableFuture<T> lf = fn.apply(value);
+			lf.addCallback(s->complete(s), e->error(e));
+		}
+	}
+	public static class Completion<S,T>{
+		Completion next;
+		public void andAccept(Consumer<T> con){
+			Completion<T, Void> c = new AcceptCompletion(con);
+			this.next = c;
+		}
+		public Completion<T,T> andError(Consumer<Throwable> econ){
+			Completion<T,T> c = new ErrorCompletion<>(econ);
+			this.next = c;
+			return c;
+		}
+		public <V> Completion<T,V> andApply(Function<T, ListenableFuture<V>> fn){
+			Completion<T,V> c = new ApplyCompletion<>(fn);
+			this.next = c;
+			return c;
+		}
+		public static <S,T> Completion<S,T> from(ListenableFuture<T> lf) {
+			Completion<S,T> c = new Completion<>();
+			lf.addCallback(s->{
+				c.complete(s);
+			}, e->{
+				c.error(e);
+			});
+			return c;
+		}
+		void error(Throwable e) {
+			if (next != null) next.error(e);
+		}
+		void complete(T s) {
+			if (next != null) next.run(s);
+		}
+		void run(S value) {
 		}
 	}
 

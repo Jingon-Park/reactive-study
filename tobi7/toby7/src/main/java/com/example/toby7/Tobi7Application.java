@@ -1,6 +1,7 @@
-package com.example.tobi7;
+package com.example.toby7;
 
 import io.netty.channel.nio.NioEventLoopGroup;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,15 +20,16 @@ import org.springframework.web.context.request.async.DeferredResult;
 import java.util.concurrent.CompletableFuture;
 
 @SpringBootApplication
-public class Tobi7Application {
+@Slf4j
+public class Toby7Application {
 
 	@RestController
 	public class MyController {
 		//RestTemplate rt = new RestTemplate(); // 블로킹 방식  => 각각 2초 작업시간이 걸리는 100개의 API 호출 시에 하나의 쓰레드로 처리하기 때문에 약 200초 걸림
 		//AsyncRestTemplate rt = new AsyncRestTemplate(); // 논블로킹 방식 => 각각 2초 작업시간이 걸리는 100개의 API 호출 시에 100개의 쓰레드로 처리하기 때문에 약 2초 걸림
 		AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1))); // 논블로킹 방식 => 각각 2초 작업시간이 걸리는 1
-		static final String URL1 = "http://localhost:8081/service?req={req}";;
-		static final String URL2 = "http://localhost:8081/service2?req={req}";;
+		static final String URL1 = "http://localhost:8081/service?req={req}";
+		static final String URL2 = "http://localhost:8081/service2?req={req}";
 
 		@Autowired
 		MyService myService;
@@ -92,7 +94,7 @@ public class Tobi7Application {
 	public static void main(String[] args) {
 		System.setProperty("server.port", "8080");
 		System.setProperty("server.tomcat.max-threads", "1");
-		SpringApplication.run(Tobi7Application.class, args);
+		SpringApplication.run(Toby7Application.class, args);
 	}
 
 }

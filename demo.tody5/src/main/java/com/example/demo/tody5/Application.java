@@ -188,7 +188,7 @@ public class Application {
 
 	public static void main(String[] args) {
 		System.setProperty("server.port", "8080");
-		System.setProperty("server.tomcat.max-threads", "1");
+		System.setProperty("server.tomcat.threads.max", "1000");
 		SpringApplication.run(Application.class, args);
 	}
 

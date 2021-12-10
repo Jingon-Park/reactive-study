@@ -1,13 +1,9 @@
-package com.example.tobi8;
+package com.example.toby8;
 
-import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.NestedExceptionUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
@@ -20,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @Slf4j
 @EnableAsync
-public class Tobi8Application {
+public class Toby8Application {
 
 //	@Bean
 //	public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(){
@@ -44,7 +40,7 @@ public class Tobi8Application {
 	public static void main(String[] args) {
 		System.setProperty("reactor.ipc.netty.workerCount", "2");
 		System.setProperty("reactor.ipc.netty.pool.maxConnections", "150");
-		SpringApplication.run(Tobi8Application.class, args);
+		SpringApplication.run(Toby8Application.class, args);
 	}
 	@Service
 	public static class MyService {

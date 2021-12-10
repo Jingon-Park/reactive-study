@@ -1,4 +1,4 @@
-package com.example.tobi8;
+package com.example.toby8;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StopWatch;
